@@ -7,7 +7,9 @@ const {Todo} = require('./models/todos');
 const {User} = require('./models/user');
 
 const app = express();
+
 app.use(bodyParser.json());
+
 app.post('/todos', (req, res) => {
 
     var todo = new Todo({
@@ -21,6 +23,20 @@ app.post('/todos', (req, res) => {
     });
 
 });
+
+app.get('/todos', (req, res) => {
+
+    Todo.find().then((todos) => {
+
+        res.send({
+            todos
+        })
+
+    }, (e) => {
+        res.status(400).send(e);
+    })
+
+})
 
 app.listen(3001, () => {
   console.log("===============================");
