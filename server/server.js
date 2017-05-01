@@ -1,12 +1,11 @@
 const express = require('express');
 const bodyParser = require('body-parser'); // turns the body into json object
 const colors = require('colors');
-
+const port = process.env.port || 3001;
 const {mongoose} = require('./db/mongoose'); // mongoose config
 const {Todo} = require('./models/todos');
 const {User} = require('./models/user');
 const {ObjectID} = require('mongodb');
-
 const app = express();
 
 app.use(bodyParser.json());
@@ -61,9 +60,9 @@ app.get('/todos/:id', (req, res) => {
         
 })
 
-app.listen(3001, () => {
+app.listen(port, () => {
   console.log("===============================");
-  console.log(`Started up at port 3001`.green);
+  console.log(`Started up at port ${port}`.green);
   console.log(" ");
 });
 
