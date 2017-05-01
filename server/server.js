@@ -60,6 +60,32 @@ app.get('/todos/:id', (req, res) => {
         
 })
 
+app.delete('/todos/:id', (req, res) => {
+    const id = req.params.id
+
+    // Validate Id
+    if(!ObjectID.isValid(id)){
+        return res.status(404).send();
+    }
+
+    Todo.findByIdAndRemove(id).then(todo => {
+
+        // if there is a successful delete, the DB will send us the item to delete
+        // so todo will not be null
+        if(!todo){
+            return res.status(404).send();
+        }
+
+        // Send back the todo that was deleted
+        res.status(200).send({todo});
+
+    }).catch(e => {
+        res.status(400).send();
+    })
+
+
+})
+
 app.listen(port, () => {
   console.log("===============================");
   console.log(`Started up at port ${port}`.green);
