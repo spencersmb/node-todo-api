@@ -4,8 +4,8 @@ const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
 // Connect to db first - local server
-// mongoose.connect('mongodb://localhost:27017/NodeTodos');
-mongoose.connect('mongodb://everytuesday:westwood23@ds127391.mlab.com:27391/todoapp')
+// Set MONGO URI - heroku config:set MONGODB_URI=somevalue
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/NodeTodos')
 
 module.exports = {
     mongoose
