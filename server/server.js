@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser'); // turns the body into json object
 const colors = require('colors');
-const port = process.env.port || 3001;
+const port = process.env.PORT || 3001;
 const {mongoose} = require('./db/mongoose'); // mongoose config
 const {Todo} = require('./models/todos');
 const {User} = require('./models/user');
