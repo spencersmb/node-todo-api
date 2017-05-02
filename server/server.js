@@ -3,6 +3,7 @@ const colors = require('colors')
 const express = require('express');
 const _= require('lodash');
 const bodyParser = require('body-parser'); // turns the body into json object
+const cors = require('cors');
 
 const port = process.env.PORT
 const {mongoose} = require('./db/mongoose'); // mongoose config
@@ -13,6 +14,7 @@ const app = express();
 
 
 app.use(bodyParser.json());
+app.use(cors()); // cors is a middleware for express
 
 app.post('/todos', (req, res) => {
 
