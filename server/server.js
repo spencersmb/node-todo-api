@@ -91,7 +91,6 @@ app.patch('/todos/:id', (req, res) => {
 
     const id = req.params.id;
     let body = _.pick(req.body, ['text', 'completed'])
-    console.log(body);
 
     // Validate Id
     if(!ObjectID.isValid(id)){
