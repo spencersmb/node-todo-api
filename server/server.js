@@ -125,6 +125,42 @@ app.patch('/todos/:id', (req, res) => {
 
 })
 
+// app.post('/users', (req, res) => {
+//     let body = _.pick(req.body, ['email', 'password'])
+//     const user = new User(body);
+
+//     // console.log(user.validateSync());
+
+//     // Validate Email
+//     // if(!user.validateSync()){
+
+//     // }
+
+//     // Hashpassword
+
+//     // Set Token/Token Method
+
+//     // Save user to DB
+//     user.save().then(user => {
+//         res.send(user);
+//     }).catch(e => {
+//         if (e.code === 11000) {
+//             res.status(400).send({message: 'An account already exists with that email.'})
+//             return
+//         }
+
+//         if(e.errors.email){
+//             res.status(400).send({message: "Not a valid email"})
+//             return
+//         }
+        
+//         if(e.errors.password){
+//             res.status(400).send({message:'password must be at least 6 char long'})
+//             return
+//         }
+//     })
+// })
+
 app.listen(port, () => {
   console.log("===============================");
   console.log(`Started up at port ${port}`.green);
