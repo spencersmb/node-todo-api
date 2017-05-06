@@ -28,11 +28,11 @@ Todo.findOne({
 })
 
 // Find first item by id
-Todo.findById(id).then(todos => {
+Todo.findById(id).then(todo => {
     if(!todo){
         return console.log('ID not found');
     }
-    console.log('Todos', todos);
+    console.log('Todos', todo);
 }).catch(e => console.log(e.message))
 
 User.findById(id).then(todo => {

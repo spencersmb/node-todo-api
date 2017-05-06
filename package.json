@@ -14,13 +14,19 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "auth0-lock": "^10.15.1",
     "body-parser": "^1.17.1",
     "colors": "^1.1.2",
     "cors": "^2.8.3",
     "express": "^4.15.2",
+    "express-jwt": "^5.3.0",
+    "js-cookie": "^2.1.4",
+    "jwks-rsa": "^1.1.1",
+    "jwt-decode": "^2.2.0",
     "lodash": "^4.17.4",
     "mongodb": "^2.2.26",
     "mongoose": "^4.9.6",
+    "superagent": "^3.5.2",
     "validator": "^7.0.0"
   },
   "devDependencies": {
@@ -28,6 +34,7 @@
     "expect": "^1.20.2",
     "mocha": "^3.3.0",
     "nodemon": "^1.11.0",
+    "standard": "^10.0.2",
     "supertest": "^3.0.0"
   }
 }

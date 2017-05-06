@@ -4,17 +4,67 @@ const express = require('express');
 const _= require('lodash');
 const bodyParser = require('body-parser'); // turns the body into json object
 const cors = require('cors');
-
+const jwt = require('express-jwt');
+const jwksRsa = require('jwks-rsa');
 const port = process.env.PORT
 const {mongoose} = require('./db/mongoose'); // mongoose config
 const {Todo} = require('./models/todos');
-const {User} = require('./models/user');
+// const {User} = require('./models/user');
 const {ObjectID} = require('mongodb');
 const app = express();
 
 
+
+
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors()); // cors is a middleware for express
+
+
+// const authCheck = jwt({
+//   secret: jwks.expressJwtSecret({
+//         cache: true,
+//         rateLimit: true,
+//         jwksRequestsPerMinute: 5,
+//         jwksUri: "https://smbtodos.auth0.com/.well-known/jwks.json"
+//     }),
+//     audience: 'https://nameless-scrubland-28835.herokuapp.com/api/jokes/celebrity',
+//     issuer: "https://smbtodos.auth0.com/",
+//     algorithms: ['RS256']
+// });
+
+// Authentication middleware. When used, the
+// access token must exist and be verified against
+// the Auth0 JSON Web Key Set
+const checkJwt = jwt({
+  secret: jwksRsa.expressJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: "https://smbtodos.auth0.com/.well-known/jwks.json"
+    }),
+    audience: 'https://localhost:3001/api/jokes/celebrity',
+    issuer: "https://smbtodos.auth0.com/",
+    algorithms: ['RS256']
+});
+
+const authCheck = jwt({
+  secret: 'rdnk5w5Xm-xca0ZX0eSSfYCDoqSeHIPhe7Ga_XfUAeAiEmJXljyoPNGM07reCad7',
+  // If your Auth0 client was created before Dec 6, 2016,
+  // uncomment the line below and remove the line above
+  // secret: new Buffer('AUTH0_SECRET', 'base64'),
+  audience: 'HfHVZS2aB0TLT8Z6Bny5kawCTrcuoWOt'
+});
+// Enable the use of the jwtCheck middleware in all of our routes
+// app.use(checkJwt);
+
+// If we do not get the correct credentials, we’ll return an appropriate message
+app.use(function (err, req, res, next) {
+  if (err.name === 'UnauthorizedError') {
+    res.status(401).json({message:'Missing or invalid token'});
+  }
+});
+
 
 app.post('/todos', (req, res) => {
 
@@ -123,6 +173,37 @@ app.patch('/todos/:id', (req, res) => {
             res.status(400).send();
         })
 
+})
+
+
+app.get('/api/jokes/celebrity', authCheck, (req,res) => {
+  let CelebrityJokes = [
+    {
+        id: 88881,
+        joke: 'As President Roosevelt said: "We have nothing to fear but fear itself. And Chuck Norris."'
+    },
+    {
+        id: 88882,
+        joke: "Chuck Norris only lets Charlie Sheen think he is winning. Chuck won a long time ago."
+    },
+    {
+        id: 88883,
+        joke: 'Everything King Midas touches turnes to gold. Everything Chuck Norris touches turns up dead.'
+    },
+    {
+        id: 88884,
+        joke: 'Each time you rate this, Chuck Norris hits Obama with Charlie Sheen and says, "Who is winning now?!"'
+    },
+    {
+        id: 88885,
+        joke: "For Charlie Sheen winning is just wishful thinking. For Chuck Norris it's a way of life."
+    },
+    {
+        id: 88886,
+        joke: "Hellen Keller's favorite color is Chuck Norris."
+    } 
+  ];
+  res.send(CelebrityJokes);
 })
 
 // app.post('/users', (req, res) => {
