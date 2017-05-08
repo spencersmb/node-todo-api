@@ -1,27 +1,83 @@
 var request = require('supertest');
+const Request = require('request')
 var expect = require('expect');
 const {app} = require('../server')
 const {Todo} = require('../models/todos');
 const {ObjectID} = require('mongodb');
+
+const user1ID = new ObjectID()
+const user2ID = new ObjectID()
 
 const todos = [
     {
         _id: new ObjectID(),
         text:"First test todo",
         completed:false,
-        completedAt: null
+        completedAt: null,
+        _creator: user1ID
     },
     {
         _id: new ObjectID(),
         text:"seconds test todo",
         completed:true,
-        completedAt: 333
+        completedAt: 333,
+        _creator: user1ID
     },
     {
         _id: new ObjectID(),
-        text:"third test todo"
+        text:"third test todo",
+        _creator: user2ID
     }
 ]
+
+
+var options = { method: 'POST',
+  url: 'https://smbtodos.auth0.com/oauth/ro',
+  headers: { 'content-type': 'application/json' },
+  body: 
+   { client_id: 'HfHVZS2aB0TLT8Z6Bny5kawCTrcuoWOt',
+     username: 'test@gmail.com',
+     password: 'test',
+     connection: 'Username-Password-Authentication',
+     grant_type: 'client_credentials',
+     scope: 'openid' },
+  json: true };
+
+let auth = {
+    token_id: '',
+    type: '',
+    access_token:'',
+    user_id: ''
+}
+
+before((done) => {
+    Request(options, function (error, response, body) {
+        if (error) throw new Error(error);
+
+        auth.token_id = body.id_token
+        auth.type = body.token_type
+        auth.access_token = body.access_token
+
+        const authString = auth.type + ' ' + auth.access_token
+
+
+        Request({ 
+            method: 'GET',
+            url: 'https://smbtodos.auth0.com/userinfo',
+            headers: { 
+                Authorization: authString
+            },
+            json: true 
+        }, 
+        function (error, response, body) {
+            if (error) throw new Error(error);
+
+            // console.log(body);
+            auth.user_id = body.user_id
+            done();
+        });
+    });
+})
 
 beforeEach((done) => {
     //empty DB before each test
@@ -32,15 +88,18 @@ beforeEach((done) => {
 
 describe('POST /todos', ()=> {
 
-    it('Should create a new todo update repeat', (done) => {
-
-        var text = "worked again";
+    it('Should create a new todo update', (done) => {
+        var todo = {
+            text: 'test text todo 5/8',
+            _id: auth.user_id
+        }
         request(app)
             .post('/todos')
-            .send({text})
+            .set('Authorization', 'Bearer ' + auth.token_id)
+            .send(todo)
             .expect(200)
             .expect((res) => {
-                expect(res.body.text).toBe(text)
+                expect(res.body.text).toBe(todo.text)
             })
             .end((err, res)=>{
                 if(err){
@@ -48,9 +107,9 @@ describe('POST /todos', ()=> {
                 }
 
                 // Only find todos with the matching text object
-                Todo.find({text}).then((todos) => {
-                    expect(todos.length).toBe(1)
-                    expect(todos[0].text).toBe(text)
+                Todo.find(todo.text).then((todos) => {
+                    expect(todos.length).toBe(4)
+                    expect(todos[3].text).toBe(todo.text)
                     done()
                 }).catch(e => done(e))
             })
@@ -60,6 +119,7 @@ describe('POST /todos', ()=> {
     it('Should not create Todo with invalid Data', (done)=>{
         request(app)
         .post('/todos')
+        .set('Authorization', 'Bearer ' + auth.token_id)
         .send({})
         .expect(400)
         .end( (err, res) => {

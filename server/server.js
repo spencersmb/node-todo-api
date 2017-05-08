@@ -13,7 +13,7 @@ const {Todo} = require('./models/todos');
 const {ObjectID} = require('mongodb');
 const app = express();
 
-
+// If mongo is running test with: pegrep mongo, kill 1234
 
 
 app.use(bodyParser.json());
@@ -49,11 +49,11 @@ const checkJwt = jwt({
 });
 
 const authCheck = jwt({
-  secret: 'rdnk5w5Xm-xca0ZX0eSSfYCDoqSeHIPhe7Ga_XfUAeAiEmJXljyoPNGM07reCad7',
+  secret: process.env.JWT_SECRET,
   // If your Auth0 client was created before Dec 6, 2016,
   // uncomment the line below and remove the line above
   // secret: new Buffer('AUTH0_SECRET', 'base64'),
-  audience: 'HfHVZS2aB0TLT8Z6Bny5kawCTrcuoWOt'
+  audience: process.env.AUDIENCE
 });
 // Enable the use of the jwtCheck middleware in all of our routes
 // app.use(checkJwt);
@@ -66,10 +66,11 @@ app.use(function (err, req, res, next) {
 });
 
 
-app.post('/todos', (req, res) => {
+app.post('/todos', authCheck, (req, res) => {
 
     var todo = new Todo({
-      text: req.body.text
+      text: req.body.text,
+      _creator: req.body._creator
     });
 
     todo.save().then((doc) => {
