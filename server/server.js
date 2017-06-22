@@ -1,25 +1,23 @@
 require('./config/config')
 const colors = require('colors')
-const express = require('express');
-const _= require('lodash');
-const bodyParser = require('body-parser'); // turns the body into json object
-const cors = require('cors');
-const jwt = require('express-jwt');
-const jwksRsa = require('jwks-rsa');
+const express = require('express')
+const _ = require('lodash')
+const bodyParser = require('body-parser') // turns the body into json object
+const cors = require('cors')
+const jwt = require('express-jwt')
+const jwksRsa = require('jwks-rsa')
 const port = process.env.PORT
-const {mongoose} = require('./db/mongoose'); // mongoose config
-const {Todo} = require('./models/todos');
+const { mongoose } = require('./db/mongoose') // mongoose config
+const { Todo } = require('./models/todos')
 // const {User} = require('./models/user');
-const {ObjectID} = require('mongodb');
-const app = express();
+const { ObjectID } = require('mongodb')
+const app = express()
 
-// If mongo is running test with: pegrep mongo, kill 1234
+// If mongo is running test with: pgrep mongo, kill 1234
 
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors()); // cors is a middleware for express
-
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(cors()) // cors is a middleware for express
 
 // const authCheck = jwt({
 //   secret: jwks.expressJwtSecret({
@@ -38,15 +36,15 @@ app.use(cors()); // cors is a middleware for express
 // the Auth0 JSON Web Key Set
 const checkJwt = jwt({
   secret: jwksRsa.expressJwtSecret({
-        cache: true,
-        rateLimit: true,
-        jwksRequestsPerMinute: 5,
-        jwksUri: "https://smbtodos.auth0.com/.well-known/jwks.json"
-    }),
-    audience: 'https://localhost:3001/api/jokes/celebrity',
-    issuer: "https://smbtodos.auth0.com/",
-    algorithms: ['RS256']
-});
+    cache: true,
+    rateLimit: true,
+    jwksRequestsPerMinute: 5,
+    jwksUri: 'https://smbtodos.auth0.com/.well-known/jwks.json'
+  }),
+  audience: 'https://localhost:3001/api/jokes/celebrity',
+  issuer: 'https://smbtodos.auth0.com/',
+  algorithms: ['RS256']
+})
 
 const authCheck = jwt({
   secret: process.env.JWT_SECRET,
@@ -54,157 +52,150 @@ const authCheck = jwt({
   // uncomment the line below and remove the line above
   // secret: new Buffer('AUTH0_SECRET', 'base64'),
   audience: process.env.AUDIENCE
-});
+})
 // Enable the use of the jwtCheck middleware in all of our routes
 // app.use(checkJwt);
 
 // If we do not get the correct credentials, we’ll return an appropriate message
-app.use(function (err, req, res, next) {
+app.use(function(err, req, res, next) {
   if (err.name === 'UnauthorizedError') {
-    res.status(401).json({message:'Missing or invalid token'});
+    res.status(401).json({ message: 'Missing or invalid token' })
   }
-});
-
+})
 
 app.post('/todos', authCheck, (req, res) => {
+  var todo = new Todo({
+    text: req.body.text,
+    _creator: req.body._creator
+  })
 
-    var todo = new Todo({
-      text: req.body.text,
-      _creator: req.body._creator
-    });
-
-    todo.save().then((doc) => {
-        res.send(doc);
-    }, (e) => {
-        res.status(400).send(e);
-    });
-
-});
+  todo.save().then(
+    doc => {
+      res.send(doc)
+    },
+    e => {
+      res.status(400).send(e)
+    }
+  )
+})
 
 app.get('/todos', (req, res) => {
-
-    Todo.find().then((todos) => {
-
-        res.send({
-            todos
-        })
-
-    }, (e) => {
-        res.status(400).send(e);
-    })
-
+  Todo.find().then(
+    todos => {
+      res.send({
+        todos
+      })
+    },
+    e => {
+      res.status(400).send(e)
+    }
+  )
 })
 
 app.get('/todos/:id', (req, res) => {
-    //req.params is the :id in the url
-    const id = req.params.id
+  //req.params is the :id in the url
+  const id = req.params.id
 
-    // Validate Id
-    if(!ObjectID.isValid(id)){
-        return res.status(404).send();
-    }
+  // Validate Id
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
 
-    Todo.findById(id).then( todo => {
-        if(!todo){
-            return res.status(404).send();
-        }
+  Todo.findById(id)
+    .then(todo => {
+      if (!todo) {
+        return res.status(404).send()
+      }
 
-        //Gives flexibility to add more params to the object that has todos on it
-        res.send({todo});
-    }).catch(e => {
-        res.status(400).send();
+      //Gives flexibility to add more params to the object that has todos on it
+      res.send({ todo })
     })
-        
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 app.delete('/todos/:id', (req, res) => {
-    const id = req.params.id
+  const id = req.params.id
 
-    // Validate Id
-    if(!ObjectID.isValid(id)){
-        return res.status(404).send();
-    }
+  // Validate Id
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
 
-    Todo.findByIdAndRemove(id).then(todo => {
+  Todo.findByIdAndRemove(id)
+    .then(todo => {
+      // if there is a successful delete, the DB will send us the item to delete
+      // so todo will not be null
+      if (!todo) {
+        return res.status(404).send()
+      }
 
-        // if there is a successful delete, the DB will send us the item to delete
-        // so todo will not be null
-        if(!todo){
-            return res.status(404).send();
-        }
-
-        // Send back the todo that was deleted
-        res.status(200).send({todo});
-
-    }).catch(e => {
-        res.status(400).send();
+      // Send back the todo that was deleted
+      res.status(200).send({ todo })
     })
-
-
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
 app.patch('/todos/:id', (req, res) => {
+  const id = req.params.id
+  let body = _.pick(req.body, ['text', 'completed'])
 
-    const id = req.params.id;
-    let body = _.pick(req.body, ['text', 'completed'])
+  // Validate Id
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send()
+  }
 
-    // Validate Id
-    if(!ObjectID.isValid(id)){
-        return res.status(404).send();
-    }
+  if (_.isBoolean(body.completed) && body.completed) {
+    body.completedAt = new Date().getTime() // return JS timestamp
+  } else {
+    body.completed = false
+    body.completedAt = null
+  }
 
-    if(_.isBoolean(body.completed) && body.completed){
-        body.completedAt = new Date().getTime() // return JS timestamp
-    }else{
-        body.completed = false;
-        body.completedAt = null;
-    }
+  Todo.findByIdAndUpdate(id, { $set: body }, { new: true })
+    .then(todo => {
+      if (!todo) {
+        return res.status(404).send()
+      }
 
-    Todo.findByIdAndUpdate(id, {$set:body}, {new:true})
-        .then(todo => {
-
-            if(!todo){
-                return res.status(404).send()
-            }
-
-            res.send({todo})
-
-        })
-        .catch(e => {
-            res.status(400).send();
-        })
-
+      res.send({ todo })
+    })
+    .catch(e => {
+      res.status(400).send()
+    })
 })
 
-
-app.get('/api/jokes/celebrity', authCheck, (req,res) => {
+app.get('/api/jokes/celebrity', authCheck, (req, res) => {
   let CelebrityJokes = [
     {
-        id: 88881,
-        joke: 'As President Roosevelt said: "We have nothing to fear but fear itself. And Chuck Norris."'
+      id: 88881,
+      joke: 'As President Roosevelt said: "We have nothing to fear but fear itself. And Chuck Norris."'
     },
     {
-        id: 88882,
-        joke: "Chuck Norris only lets Charlie Sheen think he is winning. Chuck won a long time ago."
+      id: 88882,
+      joke: 'Chuck Norris only lets Charlie Sheen think he is winning. Chuck won a long time ago.'
     },
     {
-        id: 88883,
-        joke: 'Everything King Midas touches turnes to gold. Everything Chuck Norris touches turns up dead.'
+      id: 88883,
+      joke: 'Everything King Midas touches turnes to gold. Everything Chuck Norris touches turns up dead.'
     },
     {
-        id: 88884,
-        joke: 'Each time you rate this, Chuck Norris hits Obama with Charlie Sheen and says, "Who is winning now?!"'
+      id: 88884,
+      joke: 'Each time you rate this, Chuck Norris hits Obama with Charlie Sheen and says, "Who is winning now?!"'
     },
     {
-        id: 88885,
-        joke: "For Charlie Sheen winning is just wishful thinking. For Chuck Norris it's a way of life."
+      id: 88885,
+      joke: "For Charlie Sheen winning is just wishful thinking. For Chuck Norris it's a way of life."
     },
     {
-        id: 88886,
-        joke: "Hellen Keller's favorite color is Chuck Norris."
-    } 
-  ];
-  res.send(CelebrityJokes);
+      id: 88886,
+      joke: "Hellen Keller's favorite color is Chuck Norris."
+    }
+  ]
+  res.send(CelebrityJokes)
 })
 
 // app.post('/users', (req, res) => {
@@ -235,7 +226,7 @@ app.get('/api/jokes/celebrity', authCheck, (req,res) => {
 //             res.status(400).send({message: "Not a valid email"})
 //             return
 //         }
-        
+
 //         if(e.errors.password){
 //             res.status(400).send({message:'password must be at least 6 char long'})
 //             return
@@ -244,9 +235,9 @@ app.get('/api/jokes/celebrity', authCheck, (req,res) => {
 // })
 
 app.listen(port, () => {
-  console.log("===============================");
-  console.log(`Started up at port ${port}`.green);
-  console.log(" ");
-});
+  console.log('===============================')
+  console.log(`Started up at port ${port}`.green)
+  console.log(' ')
+})
 
-module.exports = {app};
+module.exports = { app }

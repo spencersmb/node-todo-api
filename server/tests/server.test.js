@@ -30,7 +30,6 @@ const todos = [
     }
 ]
 
-
 var options = { method: 'POST',
   url: 'https://smbtodos.auth0.com/oauth/ro',
   headers: { 'content-type': 'application/json' },
